@@ -12,7 +12,7 @@
     "moduleResolution": "nodenext",
     "baseUrl": "./",
     "allowJs": true,
-    "checkJs": true
+    "sourceMap": true
   },
   "exclude": ["node_modules"]
 }
