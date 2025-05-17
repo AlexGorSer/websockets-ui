@@ -1,7 +1,13 @@
-interface RequestI<T> {
+interface RequestI {
   type: string;
-  data: T;
+  data: string;
   id: 0;
+}
+
+interface UserArrI {
+  name: string;
+  password: string | number;
+  id: string;
 }
 
 interface CreateLoginUserI {
@@ -32,7 +38,7 @@ interface CreateRoomI {
 
 interface UpdateRoomI {
   roomId: number | string;
-  roomUser: [UserDataI];
+  roomUsers: [UserDataI];
 }
 
 interface AddShipsStartGameI {
@@ -86,4 +92,5 @@ export {
   gameAttackI,
   randomAttackI,
   FinishI,
+  UserArrI,
 };
