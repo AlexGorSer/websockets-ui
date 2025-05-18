@@ -1,5 +1,5 @@
-import { httpServer } from './src/http_server/index.js';
-import { StartWS } from './src/ws/index.ts';
+import { httpServer } from './src/http_server/index';
+import { StartWS } from './src/ws/index';
 import 'dotenv/config';
 
 const HTTP_PORT = process.env.HTTP_PORT ?? 8181;
