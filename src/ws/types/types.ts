@@ -79,6 +79,18 @@ interface FinishI {
   winPlayer: currentPlayerI;
 }
 
+enum ResType {
+  REG = 'reg',
+  CREATE_GAME = 'create_game',
+  UPDATE_ROOM = 'update_room',
+}
+
+enum ReqType {
+  REG = 'reg',
+  CREATE_ROOM = 'create_room',
+  ADD_USER = 'add_user_to_room',
+}
+
 export {
   RequestI,
   CreateLoginUserI,
@@ -93,4 +105,6 @@ export {
   randomAttackI,
   FinishI,
   UserArrI,
+  ResType,
+  ReqType,
 };

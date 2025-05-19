@@ -5,6 +5,7 @@ import {
   CreateLoginUserI,
   UpdateRoomI,
   UserArrI,
+  ResType,
 } from '../types/types';
 
 const createPlayer = async (
@@ -17,21 +18,50 @@ const createPlayer = async (
   const { name, password }: CreateLoginUserI = JSON.parse(data);
   const id = clientId;
 
-  createdUsers.push({ name, password, id });
-  console.log(`User ${name} create ${id}`);
+  const isUser = createdUsers.find((user) => user.name === name);
 
-  const sendUser: RequestI = {
-    type: 'reg',
-    data: JSON.stringify({
-      name: name,
-      index: id,
-      error: false,
-      errorText: '',
-    }),
-    id: 0,
-  };
+  if (!isUser) {
+    createdUsers.push({ name, password, id });
+    console.log(`User ${name} created ${id}`);
 
-  ws.send(JSON.stringify(sendUser));
+    await sendReq(
+      {
+        name: name,
+        index: id,
+        error: false,
+        errorText: '',
+      },
+      ResType.REG,
+      ws,
+    );
+  } else {
+    if (isUser.password === password) {
+      isUser.id = id;
+      console.log(`User ${name} is logIn`);
+      await sendReq(
+        {
+          name: name,
+          index: id,
+          error: false,
+          errorText: '',
+        },
+        ResType.REG,
+        ws,
+      );
+    } else {
+      await sendReq(
+        {
+          name: '',
+          index: '',
+          error: true,
+          errorText: 'Wrong password',
+        },
+        ResType.REG,
+        ws,
+      );
+      console.log(`User ${name} wrong password`);
+    }
+  }
 };
 
 const createRoom = async (
@@ -43,6 +73,7 @@ const createRoom = async (
   const current = createdUsers.find((user) => user.id === clientId);
 
   if (!current) {
+    console.log(`User not found`);
     return;
   }
 
@@ -55,7 +86,7 @@ const createRoom = async (
       },
     ],
   };
-
+  console.log(`Room ID ${indexRoom} is created`);
   availableRoomArr.push(room);
 };
 
@@ -64,13 +95,14 @@ const UpdateRoom = async (
   arr: UpdateRoomI[] | UpdateRoomI,
 ) => {
   const sendUser: RequestI = {
-    type: 'update_room',
+    type: ResType.UPDATE_ROOM,
     data: JSON.stringify(arr),
     id: 0,
   };
   wss.clients.forEach((e) => {
     e.send(JSON.stringify(sendUser));
   });
+  console.log(`Rooms list update`);
 };
 
 const addUserToRoom = async (
@@ -82,24 +114,19 @@ const addUserToRoom = async (
 ) => {
   const { indexRoom } = JSON.parse(json);
   const room = availableRoomArr.find((roomId) => roomId.roomId === indexRoom);
-  console.log(clientId);
   const current = createdUsers.find((user) => user.id === clientId);
-  console.log(current);
 
   if (current && room) {
     const user = room.roomUsers.find((user) => user.index === current.id);
 
     if (!user) {
-      // console.log(current);
       const { name, id } = current;
       room.roomUsers.push({ name: name, index: id });
-      // console.log(availableRoomArr);
     }
 
     roomInGame.push(room);
     const index = availableRoomArr.indexOf(room);
     availableRoomArr.splice(index);
-    console.log(availableRoomArr);
   }
 };
 
@@ -112,17 +139,28 @@ const createGame = async (
       elem.roomUsers.forEach((room) => {
         const ws = clientsMap.get(room.index);
         const sendUser: RequestI = {
-          type: 'create_game',
+          type: ResType.CREATE_GAME,
           data: JSON.stringify({
             idGame: elem.roomId,
             idPlayer: room.index,
           }),
           id: 0,
         };
+        console.log(`Game ${elem.roomId} is created`);
         ws?.send(JSON.stringify(sendUser));
       });
     }
   });
+};
+
+const sendReq = async (data: object, typeReq: string, ws: WebSocket) => {
+  const sendUser: RequestI = {
+    type: typeReq,
+    data: JSON.stringify(data),
+    id: 0,
+  };
+
+  ws.send(JSON.stringify(sendUser));
 };
 
 export { createGame, addUserToRoom, UpdateRoom, createRoom, createPlayer };

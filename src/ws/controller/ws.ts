@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { RequestI, UpdateRoomI, UserArrI } from '../types/types';
+import { ReqType, RequestI, UpdateRoomI, UserArrI } from '../types/types';
 import { randomUUID } from 'node:crypto';
 import {
   createPlayer,
@@ -19,20 +19,17 @@ export const wsController = async (ws: WebSocket, wss: WebSocket.Server) => {
   clients.set(clientId, ws);
 
   ws.on('message', async (message) => {
-    console.log('Received message:', message.toString());
-    console.log(JSON.parse(message.toString()));
     const parseJSON: RequestI = await JSON.parse(message.toString());
 
-    if (parseJSON.type === 'reg') {
+    if (parseJSON.type === ReqType.REG) {
       await createPlayer(parseJSON, ws, clientId, createdUsers);
       await UpdateRoom(wss, availableRoomArr);
     }
-    if (parseJSON.type === 'create_room') {
+    if (parseJSON.type === ReqType.CREATE_ROOM) {
       await createRoom(clientId, createdUsers, availableRoomArr);
-      // console.log('create');
       await UpdateRoom(wss, availableRoomArr);
     }
-    if (parseJSON.type === 'add_user_to_room') {
+    if (parseJSON.type === ReqType.ADD_USER) {
       await addUserToRoom(
         parseJSON.data,
         clientId,
@@ -41,7 +38,6 @@ export const wsController = async (ws: WebSocket, wss: WebSocket.Server) => {
         roomInGame,
       );
       await createGame(roomInGame, clients);
-      // console.log('add');
       await UpdateRoom(wss, availableRoomArr);
     }
   });
@@ -49,6 +45,5 @@ export const wsController = async (ws: WebSocket, wss: WebSocket.Server) => {
   ws.on('close', () => {
     console.log(`Dis ${clientId}`);
     clients.delete(clientId);
-    // console.log(clients);
   });
 };
